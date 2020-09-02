@@ -183,7 +183,7 @@ f.write("\n")
 # Applying the mosaic solution to each visit/CCD data
 f.write("calibrateExposure.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id field='"+objfld+ \
 	    "' tract=0 ccd=0..103 -j %d 2>&1 | tee log_calexp" %(ncores)+"\n")
-f.write("calibrateCatalog.py "+dir_red+"--calib "+dir_red+"CALIB --rerun object --id field='"+objfld+ \
+f.write("calibrateCatalog.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id field='"+objfld+ \
         "' tract=0 ccd=0..103 --config doApplyCalib=True -j %d 2>&1 | tee log_calcat" %(ncores)+"\n")
 f.write("\n")
 

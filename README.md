@@ -31,5 +31,21 @@ mkdir $RED
 mkdir $SCR
 ```
 
-* 
+
+* __Activating the pipeline environment__
+
+```
+setup-hscpipe
+echo 'lsst.obs.hsc.HscMapper' > $RED/_mapper
+```
+
+
+* __Setting the Brighter-Fatter kernel__
+
+```
+mkdir $RED/CALIB
+mkdir $RED/CALIB/BFKERNEL
+cd $RED/CALIB/BFKERNEL
+ln -s /hscpipe_installed_directory/hscpipe/6.7/lsst_home/stack/miniconda3-4.3.21-10a4fa6/Linux64/obs_subaru/6.7-hsc+1/hsc/brighter_fatter_kernel.pkl
+```
 

@@ -19,7 +19,7 @@ Simple Python codes to automatically write the shell scripts for running [hscPip
 
 ## Workflows
 * __Making working directories__
-  * After setting the paths as below (bash shell):  
+  * Set the paths as below (bash shell):  
     ``export RAW = /your_main_working_directory/Raw``  
     ``export RED = /your_main_working_directory/Red``  
     ``export SCR = /your_main_working_directory/job``  
@@ -48,4 +48,40 @@ mkdir $RED/CALIB/BFKERNEL
 cd $RED/CALIB/BFKERNEL
 ln -s /hscpipe_installed_directory/hscpipe/6.7/lsst_home/stack/miniconda3-4.3.21-10a4fa6/Linux64/obs_subaru/6.7-hsc+1/hsc/brighter_fatter_kernel.pkl
 ```
+
+
+* __Creating links to reference catalog for astrometry__
+
+```
+mkdir $RED/ref_cats
+cd $RED/ref_cats
+ln -s /your_data_path/astrometry_data/ps1_pv3_3pi_20170110
+```
+
+
+* __Setting up the transmission curve data for HSC filters & an SQL registry for raw data__
+
+```
+installTransmissionCurves.py $RED
+ingestImages.py $RED $RAW/*.fits --mode=link --create
+```
+
+
+* __Checking all the materials with SQL scripts__
+If you want to check if raw data is categorized well, you can simply use the following SQL scripts.
+```
+cd $RED
+sqlite3 registry.sqlite3
+.header on
+.table
+.schema
+
+SELECT visit,filter,field,taiObs,expId,expTime,count(visit) FROM raw WHERE field='BIAS' GROUP BY visit,field;
+SELECT visit,filter,field,taiObs,expId,expTime,count(visit) FROM raw WHERE field='DARK' GROUP BY visit,field;
+SELECT visit,filter,field,taiObs,expId,expTime,count(visit) FROM raw WHERE field='DOMEFLAT' GROUP BY visit,field;
+SELECT visit,filter,field,taiObs,expId,expTime,count(visit) FROM raw WHERE field='YOUR_OBJECT_FIELD_NAME' AND filter='HSC-G' GROUP BY visit,field;
+
+.q
+```
+
 

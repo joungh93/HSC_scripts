@@ -15,8 +15,9 @@ Simple Python codes to automatically write the shell scripts for running [hscPip
   * ``numpy >= 1.18.1``
   * ``pandas >= 1.0.1``
   * ``sqlite3`` ([Reference link](https://docs.python.org/3/library/sqlite3.html))
+* You have to retrieve raw data of [Subaru/Hyper Suprime-Cam (HSC)](https://www.subarutelescope.org/Observing/Instruments/HSC/index.html) from [the SMOKA archive](https://smoka.nao.ac.jp/).
 
-
+ 
 ## Workflows
 * __Making working directories__
   * Set the paths as below (bash shell):  
@@ -67,8 +68,9 @@ ingestImages.py $RED $RAW/*.fits --mode=link --create
 ```
 
 
-* __Checking all the materials with SQL scripts__
+* __Checking all the materials with SQL scripts__  
 If you want to check if raw data is categorized well, you can simply use the following SQL scripts.
+
 ```
 cd $RED
 sqlite3 registry.sqlite3
@@ -82,6 +84,28 @@ SELECT visit,filter,field,taiObs,expId,expTime,count(visit) FROM raw WHERE field
 SELECT visit,filter,field,taiObs,expId,expTime,count(visit) FROM raw WHERE field='YOUR_OBJECT_FIELD_NAME' AND filter='HSC-G' GROUP BY visit,field;
 
 .q
+```
+
+
+* __Running the Python code for writting hscPipe6 scripts__  
+Before running the Python codes, you should revise several lines in the codes (marked by ``Need to be manually revised!``) depending on your data and machine environment.
+
+In a single server,
+```
+ipython
+run mkscr_hsc_server.py
+sh scr_preproc
+sh scr_detrend
+sh scr_coadd
+```
+
+In a cluster with multiple nodes,
+```
+ipython
+run mkscr_hsc_cluster.py
+qsub job_preproc
+qsub job_detrend
+qsub job_coadd
 ```
 
 

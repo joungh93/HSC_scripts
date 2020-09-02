@@ -18,13 +18,18 @@ Simple Python codes to automatically write the shell scripts for running [hscPip
 
 
 ## Workflows
-* Making working directory
+* __Making working directories__
+  * After setting the paths as below (bash shell):  
+    ``export RAW = /your_main_working_directory/Raw``  
+    ``export RED = /your_main_working_directory/Red``  
+    ``export SCR = /your_main_working_directory/job``  
+
 ```
-ipython
-run start_drz.py
-run opt_1.py
-run mat_1.py
-run twk_1.py
-run drz_1.py
+cd /your_main_working_directory/
+mkdir $RAW
+mkdir $RED
+mkdir $SCR
 ```
+
+* 
 

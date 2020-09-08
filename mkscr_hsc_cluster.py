@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue May 26 10:53:42 2020
-
 @author: jlee
 """
 
@@ -13,10 +12,10 @@ import pandas as pd
 
 
 # ----- Need to be manually revised! ----- #
-wdir = '/data/jlee/HSCv6/test_A1367/'    # The main working directory
+wdir = '/data/jlee/HSCv6/A2199/1/'    # The main working directory
 dir_red = wdir+'Red/'    # Reduction directory
 dir_scr = wdir+'job/'    # The directory which includes the script files
-objfld = 'A1367_1'    # Object field name
+objfld = 'ABELL2199'    # Object field name
 ncores = 64    # Number of cores
 # ---------------------------------------- #
 
@@ -210,26 +209,26 @@ f.write('echo "Done."')
 f.close()
 
 
-### A script for coadd
-f = open(dir_scr+'job_coadd','w')
+### A script for precoadd
+f = open(dir_scr+'job_precoadd','w')
 
 f.write("#! /bin/bash\n")
-f.write("#$ -l h_rt=96:00:00\n")
+f.write("#$ -l h_rt=48:00:00\n")
 f.write("#$ -l excl=true\n")
 f.write("#$ -q large\n")
 f.write("#$ -pe orte %d\n" %(ncores))
-f.write("#$ -N "+objfld+"_coadd\n")
+f.write("#$ -N "+objfld+"_precoadd\n")
 f.write("#$ -v OMP_NUM_THREADS=1\n")
 f.write("#$ -S /bin/bash\n")
-f.write("#$ -o "+dir_scr+"out_coadd.dat\n")
-f.write("#$ -e "+dir_scr+"err_coadd.dat\n")
+f.write("#$ -o "+dir_scr+"out_precoadd.dat\n")
+f.write("#$ -e "+dir_scr+"err_precoadd.dat\n")
 f.write("#$ -cwd\n\n")
 
 f.write('echo "Preparing"\n')
 f.write("date\n\n")
 f.write("cd "+dir_scr+"\n\n")
-f.write("rm -rfv hostfile_coadd\n\n")
-f.write("cat $PE_HOSTFILE | awk '{print $1, "+'"slots="$2'+"}' >  hostfile_coadd\n\n")
+f.write("rm -rfv hostfile_precoadd\n\n")
+f.write("cat $PE_HOSTFILE | awk '{print $1, "+'"slots="$2'+"}' >  hostfile_precoadd\n\n")
 f.write('echo "Starting:"\n\n')
 
 f.write("setup-hscpipe\n\n")
@@ -259,14 +258,6 @@ for i in np.arange(len(filt)):
 	exec("vis_obj = vis_obj_"+flt)
 	f.write("skyCorrection.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id visit="+ \
             vis_obj+" --batch-type=smp --cores=%d 2>&1 | tee log_skycorr0_" %(ncores)+flt+"\n")
-f.write("\n")
-
-# Coadding images
-for i in np.arange(len(filt)):
-	flt = filt[i].split('HSC-')[1]
-	exec("vis_obj = vis_obj_"+flt)
-	f.write("coaddDriver.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id filter='"+filt[i]+"' tract=0 --selectId visit="+ \
-            vis_obj+" --batch-type=smp --cores=%d 2>&1 | tee log_coadd0_" %(ncores)+flt+"\n")
 
 f.write("\n")
 f.write('echo "Stopping:"\n')
@@ -275,3 +266,41 @@ f.write('echo "Done."')
 
 f.close()
 
+
+### A script for coadd
+for i in np.arange(len(filt)):
+    flt = filt[i].split('HSC-')[1]
+    f = open(dir_scr+'job_coadd_'+flt,'w')
+
+    f.write("#! /bin/bash\n")
+    f.write("#$ -l h_rt=96:00:00\n")
+    f.write("#$ -l excl=true\n")
+    f.write("#$ -q large\n")
+    f.write("#$ -pe orte %d\n" %(ncores))
+    f.write("#$ -N "+objfld+"_coadd_"+flt+"\n")
+    f.write("#$ -v OMP_NUM_THREADS=1\n")
+    f.write("#$ -S /bin/bash\n")
+    f.write("#$ -o "+dir_scr+"out_coadd_"+flt+".dat\n")
+    f.write("#$ -e "+dir_scr+"err_coadd_"+flt+".dat\n")
+    f.write("#$ -cwd\n\n")
+
+    f.write('echo "Preparing"\n')
+    f.write("date\n\n")
+    f.write("cd "+dir_scr+"\n\n")
+    f.write("rm -rfv hostfile_coadd_"+flt+"\n\n")
+    f.write("cat $PE_HOSTFILE | awk '{print $1, "+'"slots="$2'+"}' >  hostfile_coadd_"+flt+"\n\n")
+    f.write('echo "Starting:"\n\n')
+
+    f.write("setup-hscpipe\n\n")
+
+    # Coadding images
+    exec("vis_obj = vis_obj_"+flt)
+    f.write("coaddDriver.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id filter='"+filt[i]+"' tract=0 --selectId visit="+ \
+        vis_obj+" --batch-type=smp --cores=%d 2>&1 | tee log_coadd0_" %(ncores)+flt+"\n")
+
+    f.write("\n")
+    f.write('echo "Stopping:"\n')
+    f.write("date\n")
+    f.write('echo "Done."')
+
+    f.close()

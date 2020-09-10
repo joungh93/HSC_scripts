@@ -9,7 +9,10 @@ Created on Thu Apr 27 20:21:10 2019
 import numpy as np
 import glob, os
 
+
+# ----- Please revise this path manually ----- #
 dir_rerun = '/data/jlee/HSCv6/A2199/1/Red/rerun/'
+# -------------------------------------------- #
 
 
 # --------------------------------------------- #

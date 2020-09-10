@@ -1,5 +1,5 @@
 # hscPipe6_scripts
-(updated on 2020. 09. 02.)
+(updated on 2020. 09. 10.)
 
 
 ## Description
@@ -7,6 +7,7 @@ Simple Python codes to automatically write the shell scripts for running [hscPip
 
 * ``mkscr_hsc_server.py`` - when you run hscPipe6 in a single server
 * ``mkscr_hsc_cluster.py`` - when you run hscPipe6 in a cluster with multiple nodes
+* ``remove.py`` - when you want to remove the intermediate files after running the final step of hscPipe6
 
 
 ## Prerequisites
@@ -106,6 +107,14 @@ run mkscr_hsc_cluster.py
 qsub job_preproc
 qsub job_detrend
 qsub job_coadd
+```
+
+
+* __Removing the intermediate files__  
+After finishing the final step of hscPipe6 (coadding process), you should check if the images are well created. If so, it would be better to remove the intermediate files created by the pipeline for saving the space. You should revise the first line in ``remove.py`` (marked by ``Need to be manually revised!``) depending your working path.
+```
+ipython
+run remove.py
 ```
 
 

@@ -24,7 +24,7 @@ direc = [dir_rerun+'calib_bias/',
          dir_rerun+'calib_sky/']
 
 # ----- Removing & writing removing log files ----- #
-current_dir = os.getcwd()    # dwarf:/data/jlee/HSCv6/M81/Bell
+current_dir = os.getcwd()
 for k in np.arange(len(direc)):
     print('# ----- Working on '+direc[k]+' ----- #'+'\n')
     os.chdir(direc[k])
@@ -50,7 +50,7 @@ for k in sub_dir:
             continue
 
 # ----- Removing & writing removing log files ----- #
-current_dir = os.getcwd()    # dwarf:/data/jlee/HSCv6/M81/Bell
+current_dir = os.getcwd()
 for k in np.arange(len(direc)):
     print('# ----- Working on '+direc[k]+' ----- #'+'\n')
     os.chdir(direc[k])

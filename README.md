@@ -120,9 +120,9 @@ run remove.py
 
 ## Changelog
 * 2020/09/10
- * Current version is only applicable to _**one HSC field with a single field name**_.
+  * Current version is only applicable to _**one HSC field with a single field name**_.
 * 2020/12/28
- * _**Multiple HSC field data with different field names**_ is now able to be used by the updated codes.
- * Calculating average exposure time of the HSC data is also available.
+  * _**Multiple HSC field data with different field names**_ is now able to be used by the updated codes.
+  * Calculating average exposure time of the HSC data is also available.
 * :snail:
 

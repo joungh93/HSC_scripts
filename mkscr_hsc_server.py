@@ -13,11 +13,14 @@ import pandas as pd
 
 
 # ----- Need to be manually revised! ----- #
-wdir = '/data2/jlee/HSCv6/M81/Okamoto/F7/'    # The main working directory
+wdir = '/data/jlee/HSC_virgo/MACSJ0916-JFG1/'    # The main working directory
 dir_red = wdir+'Red/'    # Reduction directory
-dir_scr = wdir+'log/'    # The directory which includes the script files
-objfld = 'M81_F7'    # Object field name
-ncores = 12    # Number of cores
+dir_scr = wdir+'job/'    # The directory which includes the script files
+# objfld = 'M0916'    # Object field name
+ncores = 56    # Number of cores
+make_fringe = True    # y-band (NB0921, NB0926, and NB0973 are not available yet.) (default: False)
+use_discrete = False    # use makeDiscreteSkyMap.py instead of makeSkyMap.py (default: True)
+ra0_deg, dec0_deg, rad_deg, pixscl = 139.053750, -0.416944, 0.5, 0.168    # Only activated when use_discrete = False
 # ---------------------------------------- #
 
 
@@ -54,7 +57,8 @@ for i in np.arange(len(filt)):
 # Object
 for i in np.arange(len(filt)):
 	flt = filt[i].split('HSC-')[1]
-	query = "SELECT visit,filter,field,taiObs,expId,expTime FROM raw WHERE field='"+objfld+"' AND filter='"+filt[i]+"' GROUP BY visit,field"
+	query = "SELECT visit,filter,field,taiObs,expId,expTime FROM raw WHERE NOT field IN ('BIAS','DARK','DOMEFLAT') AND filter='"+filt[i]+"' GROUP BY visit,field"
+	# query = "SELECT visit,filter,field,taiObs,expId,expTime FROM raw WHERE field='"+objfld+"' AND filter='"+filt[i]+"' GROUP BY visit,field"
 	cur.execute(query)
 	exec('db_obj_'+flt+' = cur.fetchall()')
 	exec("db_obj_"+flt+" = pd.DataFrame(db_obj_"+flt+", columns=('visit','filter','field','taiObs','expId','expTime'))")
@@ -92,13 +96,22 @@ for i in np.arange(len(field)):
 			print(vis)
 			exec('vis_'+field[i]+'_'+flt+' = vis')
 
+			if (field[i] == 'obj'):
+				texpTime = np.sum(db['expTime'].values)
+				print(f'Total exposure time: {texpTime:.1f} sec')
+
 
 # ----- Writing HSC scripts ----- #
 
 ### A script for preproc
 f = open(dir_scr+'scr_preproc','w')
 
-f.write("rm -rfv "+dir_red+"CALIB/calibRegistry.sqlite3"+"\n")
+f.write("rm -rfv "+dir_red+"rerun"+"\n")
+for cal in field[:-1]+['sky']:
+    f.write("rm -rfv "+dir_red+"CALIB/"+cal.upper()+"\n")
+if make_fringe:
+    f.write("rm -rfv "+dir_red+"CALIB/FRINGE"+"\n")
+f.write("rm -rfv "+dir_red+"CALIB/calibRegistry*"+"\n")
 f.write("export OMP_NUM_THREADS=1"+"\n")
 f.write("\n")
 
@@ -126,6 +139,17 @@ for i in np.arange(len(filt)):
 f.write("\n")
 f.write("ingestCalibs.py "+dir_red+" --calib "+dir_red+"CALIB '"+dir_red+"rerun/calib_flat/FLAT/*/*/FLAT-*.fits' --validity=1000"+"\n")
 f.write("\n")
+
+# Making Fringe data (now, y-band only)
+if make_fringe:
+	vis_fringe = vis_obj_Y
+	flt = "Y"
+	f.write("\n")
+	f.write("constructFringe.py "+dir_red+" --calib "+dir_red+"CALIB --rerun calib_fringe --id visit="+ \
+		    vis_fringe+" --batch-type=smp --cores=%d 2>&1 | tee log_fringe_" %(ncores)+flt+"\n")
+	f.write("\n")
+	f.write("ingestCalibs.py "+dir_red+" --calib "+dir_red+"CALIB '"+dir_red+"rerun/calib_fringe/FRINGE/*/*/FRINGE-*.fits' --validity=1000"+"\n")
+	f.write("\n")
 
 # Making Sky data
 for i in np.arange(len(filt)):
@@ -156,7 +180,9 @@ f.write("\n")
 for i in np.arange(len(filt)):
 	flt = filt[i].split('HSC-')[1]
 	exec("vis_obj = vis_obj_"+flt)
-	f.write("singleFrameDriver.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id field='"+objfld+"' filter='"+filt[i]+"' visit="+ \
+	# f.write("singleFrameDriver.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id field='"+objfld+"' filter='"+filt[i]+"' visit="+ \
+	#         vis_obj+" --batch-type=smp --cores=%d 2>&1 | tee log_obj_" %(ncores)+flt+"\n")
+	f.write("singleFrameDriver.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id filter='"+filt[i]+"' visit="+ \
 	        vis_obj+" --batch-type=smp --cores=%d 2>&1 | tee log_obj_" %(ncores)+flt+"\n")
 
 f.close()
@@ -169,22 +195,46 @@ f.write("export OMP_NUM_THREADS=1"+"\n")
 f.write("\n")
 
 # Define tract
-f.write("makeDiscreteSkyMap.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id field='"+objfld+"' 2>&1 | tee log_tract0"+"\n")
+vis_obj_tot = ''
+for i in np.arange(len(filt)):
+	flt = filt[i].split('HSC-')[1]
+	if (i == np.arange(len(filt))[-1]):
+		exec("vis_obj_tot += vis_obj_"+flt)
+	else:
+		exec("vis_obj_tot += vis_obj_"+flt+"+'^'")
+if use_discrete:
+	f.write("makeDiscreteSkyMap.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id visit="+vis_obj_tot+" 2>&1 | tee log_tract0"+"\n")
+else:
+	f.write("cp -rpv "+dir_red+"rerun/object/repositoryCfg.yaml "+dir_red+"rerun/object/old_repositoryCfg.yaml"+"\n")
+	f.write("sed '3s/.*/_mapperArgs: {}/g' "+dir_red+"rerun/object/repositoryCfg.yaml > "+dir_red+"rerun/object/map_repositoryCfg.yaml"+"\n")
+	f.write("sed -i '7s/.*/  _mapperArgs: {}/g' "+dir_red+"rerun/object/map_repositoryCfg.yaml"+"\n")
+	f.write("cp -rpv "+dir_red+"rerun/object/map_repositoryCfg.yaml "+dir_red+"rerun/object/repositoryCfg.yaml"+"\n")
+	f.write("\n")
+	f.write("echo '"+'root.skyMap = "discrete"'+"' > overrides.config"+"\n")
+	f.write("echo '"+'root.skyMap["discrete"].raList = [%.6f]' %(ra0_deg)+"' >> overrides.config"+"\n")
+	f.write("echo '"+'root.skyMap["discrete"].decList = [%.6f]' %(dec0_deg)+"' >> overrides.config"+"\n")
+	f.write("echo '"+'root.skyMap["discrete"].radiusList = [%.2f]' %(rad_deg)+"' >> overrides.config"+"\n")
+	f.write("echo '"+'root.skyMap["discrete"].pixelScale = %.3f' %(pixscl)+"' >> overrides.config"+"\n")
+	f.write("echo '"+'root.skyMap["discrete"].projection = "TAN"'+"' >> overrides.config"+"\n")
+	f.write("echo '"+'root.skyMap["discrete"].tractOverlap = 0'+"' >> overrides.config"+"\n")
+	f.write("\n")
+	f.write("makeSkyMap.py "+dir_red+" --rerun object --configfile overrides.config 2>&1 | tee log_tract0"+"\n")
+	f.write("cp -rpv "+dir_red+"rerun/object/old_repositoryCfg.yaml "+dir_red+"rerun/object/repositoryCfg.yaml"+"\n")
 f.write("\n")
 
 # Mosaicking
 for i in np.arange(len(filt)):
 	flt = filt[i].split('HSC-')[1]
 	exec("vis_obj = vis_obj_"+flt)
-	f.write("mosaic.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id field='"+objfld+"' filter='"+filt[i]+"' visit="+ \
+	f.write("mosaic.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id filter='"+filt[i]+"' visit="+ \
 		    vis_obj+" tract=0 ccd=0..103 --diagnostics --diagDir "+dir_red+"rerun/mosaic_diag 2>&1 | tee log_mosaic0_"+flt+"\n")	
 f.write("\n")
 
 # Applying the mosaic solution to each visit/CCD data
-f.write("calibrateExposure.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id field='"+objfld+ \
-	    "' tract=0 ccd=0..103 -j %d 2>&1 | tee log_calexp" %(ncores)+"\n")
-f.write("calibrateCatalog.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id field='"+objfld+ \
-        "' tract=0 ccd=0..103 --config doApplyCalib=True -j %d 2>&1 | tee log_calcat" %(ncores)+"\n")
+f.write("calibrateExposure.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id visit="+vis_obj_tot+ \
+	    " tract=0 ccd=0..103 -j %d 2>&1 | tee log_calexp" %(ncores)+"\n")
+f.write("calibrateCatalog.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id visit="+vis_obj_tot+ \
+        " tract=0 ccd=0..103 --config doApplyCalib=True -j %d 2>&1 | tee log_calcat" %(ncores)+"\n")
 f.write("\n")
 
 # Writing a background model

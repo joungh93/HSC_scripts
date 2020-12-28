@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Apr 27 20:21:10 2019
-
 @author: jlee
 """
 
@@ -11,7 +10,8 @@ import glob, os
 
 
 # ----- Need to be manually revised! ----- #
-dir_rerun = '/data/jlee/HSCv6/A2199/1/Red/rerun/'
+dir_rerun = '/data/jlee/HSC_virgo/MACSJ0916-JFG1/Red/rerun/'
+make_fringe = True    # y-band (NB0921, NB0926, and NB0973 are not available yet.) (default: False)
 # ---------------------------------------- #
 
 
@@ -22,6 +22,8 @@ direc = [dir_rerun+'calib_bias/',
          dir_rerun+'calib_dark/',
          dir_rerun+'calib_flat/',
          dir_rerun+'calib_sky/']
+if make_fringe:
+    direc.append(dir_rerun+'calib_fringe')
 
 # ----- Removing & writing removing log files ----- #
 current_dir = os.getcwd()

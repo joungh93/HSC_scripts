@@ -1,5 +1,5 @@
 # hscPipe6_scripts
-(updated on 2020. 09. 10.)
+(updated on 2020. 12. 28.)
 
 
 ## Description
@@ -119,6 +119,7 @@ run remove.py
 
 
 ## Future works
-* Current version is only applicable to _**one HSC field with a single field name**_. However, there could be multiple HSC field data with different field names covering the region of your objects. This caveat will be revised in the future version.  :snail:
-
+* Current version is only applicable to _**one HSC field with a single field name**_. (2020. 09. 10.)
+* Multiple HSC field data with different field names is now able to be used by the updated codes. (2020. 12. 28.)
+* :snail:
 

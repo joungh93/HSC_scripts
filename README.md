@@ -1,5 +1,5 @@
 # hscPipe6_scripts
-(updated on 2020. 12. 28.)
+(updated on 2021. 1. 13.)
 
 
 ## Description
@@ -124,5 +124,7 @@ run remove.py
 * 2020/12/28
   * _**Multiple HSC field data with different field names**_ is now able to be used by the updated codes.
   * _**Calculating average exposure time**_ of the HSC data is also available.
+* 2021/1/13
+  * _**Subtracting CCD number 9**_ option is usable now. The problematic CCDs (i.e. CCD 9, 33, etc.) could cause some mosiac problem. ([Reference link](https://hsc.mtk.nao.ac.jp/pipedoc/pipedoc_4_e/e_faq/error_command.html#mosaic-lineareq-solve-fail)) Subtracting other CCDs will be available in the future.
 * :snail:
 

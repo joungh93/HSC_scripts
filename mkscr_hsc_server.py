@@ -140,7 +140,7 @@ for i in np.arange(len(filt)):
 	exec("vis_flat = vis_flat_"+flt)
 	f.write("\n")
 	f.write("constructFlat.py "+dir_red+" --calib "+dir_red+"CALIB --rerun calib_flat --id visit="+ \
-		    vis_flat+" --batch-type=smp --cores=%d 2>&1 | tee log_flat_" %(ncores)+flt+"\n")
+		    vis_flat+" "+ccdstr+" --batch-type=smp --cores=%d 2>&1 | tee log_flat_" %(ncores)+flt+"\n")
 f.write("\n")
 f.write("ingestCalibs.py "+dir_red+" --calib "+dir_red+"CALIB '"+dir_red+"rerun/calib_flat/FLAT/*/*/FLAT-*.fits' --validity=1000"+"\n")
 f.write("\n")

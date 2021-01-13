@@ -122,14 +122,14 @@ f.write("\n")
 
 # Making Bias data
 f.write("constructBias.py "+dir_red+" --calib "+dir_red+"CALIB --rerun calib_bias --id field='BIAS' visit="+ \
-	    vis_bias+" --batch-type=smp --cores=%d 2>&1 | tee log_bias" %(ncores)+"\n")
+	    vis_bias+" "+ccdstr+" --batch-type=smp --cores=%d 2>&1 | tee log_bias" %(ncores)+"\n")
 f.write("\n")
 f.write("ingestCalibs.py "+dir_red+" --calib "+dir_red+"CALIB '"+dir_red+"rerun/calib_bias/BIAS/*/*/BIAS-*.fits' --validity=1000"+"\n")
 f.write("\n")
 
 # Making Dark data
 f.write("constructDark.py "+dir_red+" --calib "+dir_red+"CALIB --rerun calib_dark --id field='DARK' visit="+ \
-	    vis_dark+" --batch-type=smp --cores=%d 2>&1 | tee log_dark" %(ncores)+"\n")
+	    vis_dark+" "+ccdstr+" --batch-type=smp --cores=%d 2>&1 | tee log_dark" %(ncores)+"\n")
 f.write("\n")
 f.write("ingestCalibs.py "+dir_red+" --calib "+dir_red+"CALIB '"+dir_red+"rerun/calib_dark/DARK/*/*/DARK-*.fits' --validity=1000"+"\n")
 f.write("\n") 
@@ -151,7 +151,7 @@ if make_fringe:
 	flt = "Y"
 	f.write("\n")
 	f.write("constructFringe.py "+dir_red+" --calib "+dir_red+"CALIB --rerun calib_fringe --id visit="+ \
-		    vis_fringe+" --batch-type=smp --cores=%d 2>&1 | tee log_fringe_" %(ncores)+flt+"\n")
+		    vis_fringe+" "+ccdstr+" --batch-type=smp --cores=%d 2>&1 | tee log_fringe_" %(ncores)+flt+"\n")
 	f.write("\n")
 	f.write("ingestCalibs.py "+dir_red+" --calib "+dir_red+"CALIB '"+dir_red+"rerun/calib_fringe/FRINGE/*/*/FRINGE-*.fits' --validity=1000"+"\n")
 	f.write("\n")
@@ -162,7 +162,7 @@ for i in np.arange(len(filt)):
 	exec("vis_sky = vis_obj_"+flt)
 	f.write("\n")
 	f.write("constructSky.py "+dir_red+" --calib "+dir_red+"CALIB --rerun calib_sky --id visit="+ \
-		    vis_sky+" --batch-type=smp --cores=%d 2>&1 | tee log_sky_" %(ncores)+flt+"\n")
+		    vis_sky+" "+ccdstr+" --batch-type=smp --cores=%d 2>&1 | tee log_sky_" %(ncores)+flt+"\n")
 f.write("\n")
 f.write("ingestCalibs.py "+dir_red+" --calib "+dir_red+"CALIB '"+dir_red+"rerun/calib_sky/SKY/*/*/SKY-*.fits' --validity=1000"+"\n")
 f.write("\n")	
@@ -188,7 +188,7 @@ for i in np.arange(len(filt)):
 	# f.write("singleFrameDriver.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id field='"+objfld+"' filter='"+filt[i]+"' visit="+ \
 	#         vis_obj+" --batch-type=smp --cores=%d 2>&1 | tee log_obj_" %(ncores)+flt+"\n")
 	f.write("singleFrameDriver.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id filter='"+filt[i]+"' visit="+ \
-	        vis_obj+" --batch-type=smp --cores=%d 2>&1 | tee log_obj_" %(ncores)+flt+"\n")
+	        vis_obj+" "+ccdstr+" --batch-type=smp --cores=%d 2>&1 | tee log_obj_" %(ncores)+flt+"\n")
 
 f.close()
 
@@ -208,7 +208,7 @@ for i in np.arange(len(filt)):
 	else:
 		exec("vis_obj_tot += vis_obj_"+flt+"+'^'")
 if use_discrete:
-	f.write("makeDiscreteSkyMap.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id visit="+vis_obj_tot+" 2>&1 | tee log_tract0"+"\n")
+	f.write("makeDiscreteSkyMap.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id visit="+vis_obj_tot+" "+ccdstr+" 2>&1 | tee log_tract0"+"\n")
 else:
 	f.write("cp -rpv "+dir_red+"rerun/object/repositoryCfg.yaml "+dir_red+"rerun/object/old_repositoryCfg.yaml"+"\n")
 	f.write("sed '3s/.*/_mapperArgs: {}/g' "+dir_red+"rerun/object/repositoryCfg.yaml > "+dir_red+"rerun/object/map_repositoryCfg.yaml"+"\n")
@@ -247,7 +247,7 @@ for i in np.arange(len(filt)):
 	flt = filt[i].split('HSC-')[1]
 	exec("vis_obj = vis_obj_"+flt)
 	f.write("skyCorrection.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id visit="+ \
-            vis_obj+" --batch-type=smp --cores=%d 2>&1 | tee log_skycorr0_" %(ncores)+flt+"\n")
+            vis_obj+" "+ccdstr+" --batch-type=smp --cores=%d 2>&1 | tee log_skycorr0_" %(ncores)+flt+"\n")
 f.write("\n")
 
 # Coadding images
@@ -255,7 +255,7 @@ for i in np.arange(len(filt)):
 	flt = filt[i].split('HSC-')[1]
 	exec("vis_obj = vis_obj_"+flt)
 	f.write("coaddDriver.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id filter='"+filt[i]+"' tract=0 --selectId visit="+ \
-            vis_obj+" --batch-type=smp --cores=%d 2>&1 | tee log_coadd0_" %(ncores)+flt+"\n")
+            vis_obj+" "+ccdstr+" --batch-type=smp --cores=%d 2>&1 | tee log_coadd0_" %(ncores)+flt+"\n")
 
 f.close()
 

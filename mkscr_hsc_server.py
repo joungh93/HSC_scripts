@@ -13,14 +13,15 @@ import pandas as pd
 
 
 # ----- Need to be manually revised! ----- #
-wdir = '/data/jlee/HSC_virgo/MACSJ0916-JFG1/'    # The main working directory
+wdir = '/data/jlee/HSC_virgo/A194/'    # The main working directory
 dir_red = wdir+'Red/'    # Reduction directory
 dir_scr = wdir+'job/'    # The directory which includes the script files
 # objfld = 'M0916'    # Object field name
 ncores = 56    # Number of cores
-make_fringe = True    # y-band (NB0921, NB0926, and NB0973 are not available yet.) (default: False)
-use_discrete = False    # use makeDiscreteSkyMap.py instead of makeSkyMap.py (default: True)
+make_fringe = False    # y-band (NB0921, NB0926, and NB0973 are not available yet.) (default: False)
+use_discrete = True    # use makeDiscreteSkyMap.py instead of makeSkyMap.py (default: True)
 ra0_deg, dec0_deg, rad_deg, pixscl = 139.053750, -0.416944, 0.5, 0.168    # Only activated when use_discrete = False
+ccdsub9 = True    # subtract CCD ID 9 (default: True)
 # ---------------------------------------- #
 
 
@@ -102,6 +103,10 @@ for i in np.arange(len(field)):
 
 
 # ----- Writing HSC scripts ----- #
+if ccdsub9:
+	ccdstr = "ccd=0..8^10..103"
+else:
+	ccdstr = "ccd=0..103"
 
 ### A script for preproc
 f = open(dir_scr+'scr_preproc','w')
@@ -227,14 +232,14 @@ for i in np.arange(len(filt)):
 	flt = filt[i].split('HSC-')[1]
 	exec("vis_obj = vis_obj_"+flt)
 	f.write("mosaic.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id filter='"+filt[i]+"' visit="+ \
-		    vis_obj+" tract=0 ccd=0..103 --diagnostics --diagDir "+dir_red+"rerun/mosaic_diag 2>&1 | tee log_mosaic0_"+flt+"\n")	
+		    vis_obj+" tract=0 "+ccdstr+" --diagnostics --diagDir "+dir_red+"rerun/mosaic_diag 2>&1 | tee log_mosaic0_"+flt+"\n")	
 f.write("\n")
 
 # Applying the mosaic solution to each visit/CCD data
 f.write("calibrateExposure.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id visit="+vis_obj_tot+ \
-	    " tract=0 ccd=0..103 -j %d 2>&1 | tee log_calexp" %(ncores)+"\n")
+	    " tract=0 "+ccdstr+" -j %d 2>&1 | tee log_calexp" %(ncores)+"\n")
 f.write("calibrateCatalog.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id visit="+vis_obj_tot+ \
-        " tract=0 ccd=0..103 --config doApplyCalib=True -j %d 2>&1 | tee log_calcat" %(ncores)+"\n")
+        " tract=0 "+ccdstr+" --config doApplyCalib=True -j %d 2>&1 | tee log_calcat" %(ncores)+"\n")
 f.write("\n")
 
 # Writing a background model

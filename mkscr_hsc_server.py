@@ -247,7 +247,7 @@ for i in np.arange(len(filt)):
 	flt = filt[i].split('HSC-')[1]
 	exec("vis_obj = vis_obj_"+flt)
 	f.write("skyCorrection.py "+dir_red+" --calib "+dir_red+"CALIB --rerun object --id visit="+ \
-            vis_obj+" "+ccdstr+" --batch-type=smp --cores=%d 2>&1 | tee log_skycorr0_" %(ncores)+flt+"\n")
+            vis_obj+" --batch-type=smp --cores=%d 2>&1 | tee log_skycorr0_" %(ncores)+flt+"\n")
 f.write("\n")
 
 # Coadding images
